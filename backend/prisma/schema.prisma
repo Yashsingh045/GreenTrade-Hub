@@ -1,0 +1,51 @@
+// Prisma 6
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Supplier {
+  id             String    @id @default(uuid())
+  name           String
+  email          String    @unique
+  country        String
+  contactPerson  String?   @map("contact_person")
+  phone          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  products       Product[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id                      String              @id @default(uuid())
+  supplierId              String              @map("supplier_id")
+  name                    String
+  category                Category
+  price                   Decimal             @db.Decimal(10, 2)
+  stockQuantity           Int                 @map("stock_quantity")
+  certificationStatus     CertificationStatus @map("certification_status")
+  certificationExpiryDate DateTime?           @map("certification_expiry_date") @db.Date
+  description             String?             @db.Text
+  createdAt               DateTime            @default(now()) @map("created_at")
+  
+  supplier                Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@map("products")
+}
+
+enum Category {
+  ORGANIC_FOOD
+  HANDMADE
+  SUSTAINABLE_GOODS
+}
+
+enum CertificationStatus {
+  CERTIFIED
+  PENDING
+  NOT_CERTIFIED
+}
