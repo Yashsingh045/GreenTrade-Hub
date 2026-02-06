@@ -10,28 +10,92 @@ import {
 
 const router = Router();
 
-// POST /api/products - Create new product
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Create a new product
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Product'
+ *     responses:
+ *       201:
+ *         description: Product created successfully
+ *   get:
+ *     summary: Get all products with optional filters
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [ORGANIC_FOOD, HANDMADE, SUSTAINABLE_GOODS]
+ *       - in: query
+ *         name: certificationStatus
+ *         schema:
+ *           type: string
+ *           enum: [CERTIFIED, PENDING, NOT_CERTIFIED]
+ *       - in: query
+ *         name: supplierId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of products
+ */
 router.post(
     '/',
     validateRequest(createProductSchema),
     productController.createProduct.bind(productController)
 );
 
-// GET /api/products - Get all products with optional filters
 router.get(
     '/',
     validateRequest(getProductsQuerySchema),
     productController.getAllProducts.bind(productController)
 );
 
-// PUT /api/products/:id - Update product
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   put:
+ *     summary: Update product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *   delete:
+ *     summary: Delete product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ */
 router.put(
     '/:id',
     validateRequest(updateProductSchema),
     productController.updateProduct.bind(productController)
 );
 
-// DELETE /api/products/:id - Delete product
 router.delete(
     '/:id',
     validateRequest(deleteProductSchema),

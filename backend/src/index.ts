@@ -5,6 +5,9 @@ import { errorHandler } from './middlewares/errorHandler';
 import supplierRoutes from './routes/supplier.routes';
 import productRoutes from './routes/product.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import searchRoutes from './routes/search.routes';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './utils/swagger';
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +29,10 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/search', searchRoutes);
+
+// Swagger Documentation
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
