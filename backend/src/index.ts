@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middlewares/errorHandler';
+import supplierRoutes from './routes/supplier.routes';
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +20,8 @@ app.get('/health', (req: Request, res: Response) => {
     res.json({ status: 'OK', message: 'GreenTrade Hub API is running' });
 });
 
-// API routes will be added here
+// API Routes
+app.use('/api/suppliers', supplierRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
