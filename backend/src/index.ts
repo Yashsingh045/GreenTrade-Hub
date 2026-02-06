@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middlewares/errorHandler';
 import supplierRoutes from './routes/supplier.routes';
+import productRoutes from './routes/product.routes';
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/suppliers', supplierRoutes);
+app.use('/api/products', productRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
