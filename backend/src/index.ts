@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { errorHandler } from './middlewares/errorHandler';
 import supplierRoutes from './routes/supplier.routes';
 import productRoutes from './routes/product.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +25,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API Routes
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
