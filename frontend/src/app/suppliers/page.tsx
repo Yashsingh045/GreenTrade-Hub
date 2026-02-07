@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     Container,
     Typography,
@@ -19,13 +20,21 @@ import AddSupplierModal from '@/components/Suppliers/AddSupplierModal';
 import api from '@/lib/axios';
 import { Supplier } from '@/types';
 
-const SuppliersPage = () => {
+const SuppliersContent = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const query = searchParams.get('search');
+        if (query) {
+            setSearchQuery(query);
+        }
+    }, [searchParams]);
 
     const fetchSuppliers = useCallback(async () => {
         setLoading(true);
@@ -117,5 +126,11 @@ const SuppliersPage = () => {
         </Container>
     );
 };
+
+const SuppliersPage = () => (
+    <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>}>
+        <SuppliersContent />
+    </Suspense>
+);
 
 export default SuppliersPage;
