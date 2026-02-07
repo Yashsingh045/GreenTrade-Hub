@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     Container,
     Typography,
@@ -17,21 +18,32 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
+    InputAdornment,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
 import ProductTable from '@/components/Products/ProductTable';
 import ProductModal from '@/components/Products/ProductModal';
 import api from '@/lib/axios';
 import { Product } from '@/types';
 
-const ProductsPage = () => {
+const ProductsContent = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState({
         category: '',
         certificationStatus: '',
+        search: '',
     });
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const query = searchParams.get('search');
+        if (query) {
+            setFilters(prev => ({ ...prev, search: query }));
+        }
+    }, [searchParams]);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -43,6 +55,7 @@ const ProductsPage = () => {
             const params = new URLSearchParams();
             if (filters.category) params.append('category', filters.category);
             if (filters.certificationStatus) params.append('certification_status', filters.certificationStatus);
+            if (filters.search) params.append('search', filters.search);
 
             const response = await api.get(`/products?${params.toString()}`);
             setProducts(response.data.data);
@@ -110,7 +123,24 @@ const ProductsPage = () => {
 
             <Paper sx={{ p: 2, mb: 3 }}>
                 <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-                    <Grid container size={{ xs: 12, sm: 5 }}>
+                    <Grid container size={{ xs: 12, sm: 4 }}>
+                        <TextField
+                            fullWidth
+                            label="Search Products"
+                            name="search"
+                            value={filters.search}
+                            onChange={handleFilterChange}
+                            size="small"
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon color="action" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </Grid>
+                    <Grid container size={{ xs: 12, sm: 3 }}>
                         <TextField
                             select
                             fullWidth
@@ -127,7 +157,7 @@ const ProductsPage = () => {
                             <MenuItem value="RECYCLED_MATERIAL">Recycled Material</MenuItem>
                         </TextField>
                     </Grid>
-                    <Grid container size={{ xs: 12, sm: 5 }}>
+                    <Grid container size={{ xs: 12, sm: 3 }}>
                         <TextField
                             select
                             fullWidth
@@ -147,7 +177,7 @@ const ProductsPage = () => {
                         <Button
                             fullWidth
                             variant="outlined"
-                            onClick={() => setFilters({ category: '', certificationStatus: '' })}
+                            onClick={() => setFilters({ category: '', certificationStatus: '', search: '' })}
                             size="medium"
                         >
                             Reset
@@ -200,5 +230,11 @@ const ProductsPage = () => {
         </Container>
     );
 };
+
+const ProductsPage = () => (
+    <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>}>
+        <ProductsContent />
+    </Suspense>
+);
 
 export default ProductsPage;
