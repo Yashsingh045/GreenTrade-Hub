@@ -22,9 +22,10 @@ interface ProductModalProps {
     onClose: () => void;
     onSuccess: () => void;
     product?: Product | null;
+    initialCertificationStatus?: string;
 }
 
-const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, onSuccess, product }) => {
+const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, onSuccess, product, initialCertificationStatus }) => {
     const [formData, setFormData] = useState({
         name: '',
         category: 'HANDMADE',
@@ -50,13 +51,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, onSuccess, p
                     price: product.price.toString(),
                     stockQuantity: product.stockQuantity.toString(),
                     description: product.description || '',
-                    supplierId: product.supplierId,
+                    supplierId: product.supplierId.toString(),
                 });
             } else {
                 setFormData({
                     name: '',
                     category: 'HANDMADE',
-                    certificationStatus: 'PENDING',
+                    certificationStatus: initialCertificationStatus || 'PENDING',
                     price: '',
                     stockQuantity: '0',
                     description: '',

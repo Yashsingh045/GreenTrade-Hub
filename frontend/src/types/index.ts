@@ -37,6 +37,8 @@ export interface SupplierWithProducts extends Supplier {
 export interface AnalyticsSummary {
     totalSuppliers: number;
     totalProducts: number;
+    outOfStockCount: number;
+    activeCertificationsCount: number;
     productsByCategory: { category: Category; count: number }[];
     productsByCertification: { status: CertificationStatus; count: number }[];
 }

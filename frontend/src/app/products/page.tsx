@@ -24,6 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import ProductTable from '@/components/Products/ProductTable';
 import ProductModal from '@/components/Products/ProductModal';
+import ProductDetailModal from '@/components/Products/ProductDetailModal';
 import api from '@/lib/axios';
 import { Product } from '@/types';
 
@@ -44,7 +45,19 @@ const ProductsContent = () => {
             setFilters(prev => ({ ...prev, search: query }));
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        const viewId = searchParams.get('view');
+        if (viewId && products.length > 0) {
+            const productToView = products.find(p => p.id === viewId);
+            if (productToView) {
+                setSelectedProduct(productToView);
+                setDetailModalOpen(true);
+            }
+        }
+    }, [searchParams, products]);
     const [modalOpen, setModalOpen] = useState(false);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
@@ -54,7 +67,7 @@ const ProductsContent = () => {
         try {
             const params = new URLSearchParams();
             if (filters.category) params.append('category', filters.category);
-            if (filters.certificationStatus) params.append('certification_status', filters.certificationStatus);
+            if (filters.certificationStatus) params.append('certificationStatus', filters.certificationStatus);
             if (filters.search) params.append('search', filters.search);
 
             const response = await api.get(`/products?${params.toString()}`);
@@ -75,6 +88,11 @@ const ProductsContent = () => {
     const handleEdit = (product: Product) => {
         setSelectedProduct(product);
         setModalOpen(true);
+    };
+
+    const handleViewDetail = (product: Product) => {
+        setSelectedProduct(product);
+        setDetailModalOpen(true);
     };
 
     const handleAdd = () => {
@@ -108,9 +126,12 @@ const ProductsContent = () => {
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h4" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                    Products Management
-                </Typography>
+                <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary' }}>Product Inventory</Typography>
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        Manage and monitor your sustainable product catalog.
+                    </Typography>
+                </Box>
                 <Button
                     variant="contained"
                     color="primary"
@@ -123,23 +144,8 @@ const ProductsContent = () => {
 
             <Paper sx={{ p: 2, mb: 3 }}>
                 <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-                    <Grid container size={{ xs: 12, sm: 4 }}>
-                        <TextField
-                            fullWidth
-                            label="Search Products"
-                            name="search"
-                            value={filters.search}
-                            onChange={handleFilterChange}
-                            size="small"
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <SearchIcon color="action" />
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" /></svg>
+                    <p>Filter:</p>
                     <Grid container size={{ xs: 12, sm: 3 }}>
                         <TextField
                             select
@@ -154,7 +160,6 @@ const ProductsContent = () => {
                             <MenuItem value="HANDMADE">Handmade</MenuItem>
                             <MenuItem value="ORGANIC_FOOD">Organic Food</MenuItem>
                             <MenuItem value="SUSTAINABLE_GOODS">Sustainable Goods</MenuItem>
-                            <MenuItem value="RECYCLED_MATERIAL">Recycled Material</MenuItem>
                         </TextField>
                     </Grid>
                     <Grid container size={{ xs: 12, sm: 3 }}>
@@ -204,6 +209,12 @@ const ProductsContent = () => {
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 onSuccess={fetchProducts}
+                product={selectedProduct}
+            />
+
+            <ProductDetailModal
+                open={detailModalOpen}
+                onClose={() => setDetailModalOpen(false)}
                 product={selectedProduct}
             />
 

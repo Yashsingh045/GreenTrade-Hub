@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import ThemeRegistry from "@/components/ThemeRegistry";
-import Navbar from "@/components/Layout/Navbar";
-import { Box } from "@mui/material";
+import DashboardLayout from "@/components/Layout/DashboardLayout";
 
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
@@ -26,10 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={roboto.variable}>
         <ThemeRegistry>
-          <Navbar />
-          <Box component="main" sx={{ pt: 8 }}>
+          <DashboardLayout>
             {children}
-          </Box>
+          </DashboardLayout>
         </ThemeRegistry>
       </body>
     </html>

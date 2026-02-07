@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import {
     AppBar,
     Toolbar,
     Typography,
-    Button,
     Box,
     IconButton,
     TextField,
@@ -18,15 +17,17 @@ import {
     ListItemText,
     CircularProgress,
     Divider,
+    useTheme,
 } from '@mui/material';
-import NatureIcon from '@mui/icons-material/Nature';
 import SearchIcon from '@mui/icons-material/Search';
 import BusinessIcon from '@mui/icons-material/Business';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import Link from 'next/link';
+import LightModeIcon from '@mui/icons-material/LightModeOutlined';
+import DarkModeIcon from '@mui/icons-material/DarkModeOutlined';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { SearchResult } from '@/types';
+import { ColorModeContext } from '@/components/ThemeRegistry';
 
 const GlobalSearch = () => {
     const [query, setQuery] = useState('');
@@ -36,6 +37,7 @@ const GlobalSearch = () => {
     });
     const [loading, setLoading] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+    const theme = useTheme();
     const router = useRouter();
     const searchRef = useRef<HTMLDivElement>(null);
 
@@ -83,41 +85,40 @@ const GlobalSearch = () => {
         };
     }, [query, performSearch]);
 
-    const handleResultClick = (type: string, name: string) => {
+    const handleResultClick = (type: string, name: string, id: string) => {
         setQuery('');
         setAnchorEl(null);
         if (type === 'supplier') {
-            router.push(`/suppliers?search=${encodeURIComponent(name)}`);
+            router.push(`/suppliers?search=${encodeURIComponent(name)}&view=${id}`);
         } else {
-            router.push(`/products?search=${encodeURIComponent(name)}`);
+            router.push(`/products?search=${encodeURIComponent(name)}&view=${id}`);
         }
     };
 
     return (
-        <Box ref={searchRef} sx={{ position: 'relative', width: { xs: '150px', sm: '300px' }, mx: 2 }}>
+        <Box ref={searchRef} sx={{ position: 'relative', width: { xs: '200px', sm: '400px' } }}>
             <TextField
                 size="small"
-                placeholder="Search hub..."
+                fullWidth
+                placeholder="Search suppliers, products by name..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 sx={{
-                    bgcolor: 'rgba(255, 255, 255, 0.15)',
-                    borderRadius: 1,
                     '& .MuiOutlinedInput-root': {
-                        color: 'white',
+                        bgcolor: theme.palette.mode === 'light' ? '#F1F5F9' : '#1E293B',
+                        borderRadius: 2,
                         '& fieldset': { borderColor: 'transparent' },
-                        '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                        '&.Mui-focused fieldset': { borderColor: 'white' },
+                        '&:hover fieldset': { borderColor: theme.palette.primary.main },
+                        '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
                     },
-                    '& .MuiInputBase-input::placeholder': { color: 'rgba(255, 255, 255, 0.7)', opacity: 1 },
                 }}
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
-                            <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                            <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                         </InputAdornment>
                     ),
-                    endAdornment: loading ? <CircularProgress size={20} color="inherit" /> : null,
+                    endAdornment: loading ? <CircularProgress size={18} color="inherit" /> : null,
                 }}
             />
             <Popover
@@ -128,27 +129,31 @@ const GlobalSearch = () => {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 disableAutoFocus
                 disableEnforceFocus
-                sx={{ pointerEvents: 'none' }}
+                sx={{ mt: 1 }}
                 slotProps={{
                     paper: {
                         sx: {
-                            width: 300,
-                            mt: 1,
-                            pointerEvents: 'auto',
+                            width: 400,
+                            borderRadius: 3,
+                            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                             maxHeight: 400,
                             overflowY: 'auto'
                         }
                     }
                 }}
             >
-                <List dense>
+                <List dense sx={{ py: 1 }}>
                     {results.suppliers.length > 0 && (
                         <>
-                            <Divider textAlign="left" sx={{ py: 1 }}><Typography variant="caption" color="text.secondary">SUPPLIERS</Typography></Divider>
+                            <Divider textAlign="left" sx={{ px: 2, py: 1 }}>
+                                <Typography variant="caption" fontWeight={700} color="primary" sx={{ letterSpacing: '0.05em' }}>
+                                    SUPPLIERS
+                                </Typography>
+                            </Divider>
                             {results.suppliers.map(s => (
                                 <ListItem key={s.id} disablePadding>
-                                    <ListItemButton onClick={() => handleResultClick('supplier', s.name)}>
-                                        <ListItemIcon sx={{ minWidth: 36 }}><BusinessIcon fontSize="small" color="primary" /></ListItemIcon>
+                                    <ListItemButton onClick={() => handleResultClick('supplier', s.name, s.id)}>
+                                        <ListItemIcon sx={{ minWidth: 36 }}><BusinessIcon fontSize="small" /></ListItemIcon>
                                         <ListItemText primary={s.name} />
                                     </ListItemButton>
                                 </ListItem>
@@ -157,19 +162,23 @@ const GlobalSearch = () => {
                     )}
                     {results.products.length > 0 && (
                         <>
-                            <Divider textAlign="left" sx={{ py: 1 }}><Typography variant="caption" color="text.secondary">PRODUCTS</Typography></Divider>
+                            <Divider textAlign="left" sx={{ px: 2, py: 1 }}>
+                                <Typography variant="caption" fontWeight={700} color="secondary" sx={{ letterSpacing: '0.05em' }}>
+                                    PRODUCTS
+                                </Typography>
+                            </Divider>
                             {results.products.map(p => (
                                 <ListItem key={p.id} disablePadding>
-                                    <ListItemButton onClick={() => handleResultClick('product', p.name)}>
-                                        <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" color="secondary" /></ListItemIcon>
-                                        <ListItemText primary={p.name} secondary={p.additionalInfo?.category} />
+                                    <ListItemButton onClick={() => handleResultClick('product', p.name, p.id)}>
+                                        <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" /></ListItemIcon>
+                                        <ListItemText primary={p.name} secondary={p.additionalInfo?.category?.replace('_', ' ')} />
                                     </ListItemButton>
                                 </ListItem>
                             ))}
                         </>
                     )}
                     {!loading && results.suppliers.length === 0 && results.products.length === 0 && (
-                        <ListItem><ListItemText primary="No results found" /></ListItem>
+                        <ListItem><ListItemText primary="No results found" sx={{ textAlign: 'center', py: 2, color: 'text.secondary' }} /></ListItem>
                     )}
                 </List>
             </Popover>
@@ -177,43 +186,89 @@ const GlobalSearch = () => {
     );
 };
 
-const Navbar = () => {
+import MenuIcon from '@mui/icons-material/Menu';
+
+interface NavbarProps {
+    onMenuClick?: () => void;
+}
+
+const Navbar = ({ onMenuClick }: NavbarProps) => {
+    const theme = useTheme();
+    const colorMode = useContext(ColorModeContext);
+
     return (
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: 'primary.main' }}>
-            <Toolbar sx={{ justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <AppBar
+            position="fixed"
+            sx={{
+                width: { sm: `calc(100% - 240px)` },
+                ml: { sm: `240px` },
+                bgcolor: 'background.default',
+                color: 'text.primary',
+                boxShadow: 'none',
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+            }}
+        >
+            <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton
-                        size="large"
-                        edge="start"
                         color="inherit"
-                        aria-label="menu"
-                        sx={{ mr: 2 }}
-                        component={Link}
-                        href="/"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={onMenuClick}
+                        sx={{ mr: 1, display: { sm: 'none' } }}
                     >
-                        <NatureIcon />
+                        <MenuIcon />
                     </IconButton>
-                    <Typography
-                        variant="h6"
-                        component={Link}
-                        href="/"
-                        sx={{
-                            fontWeight: 'bold',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            display: { xs: 'none', sm: 'block' }
-                        }}
-                    >
-                        GreenTrade Hub
-                    </Typography>
+                    <GlobalSearch />
                 </Box>
 
-                <GlobalSearch />
-
-                <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 } }}>
-                    <Button color="inherit" component={Link} href="/" sx={{ display: { xs: 'none', md: 'inline-flex' } }}>Dashboard</Button>
-                    <Button color="inherit" component={Link} href="/suppliers">Suppliers</Button>
-                    <Button color="inherit" component={Link} href="/products">Products</Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <IconButton
+                        onClick={colorMode.toggleColorMode}
+                        color="inherit"
+                        sx={{
+                            border: `1px solid ${theme.palette.divider}`,
+                            borderRadius: 2,
+                            p: 1
+                        }}
+                    >
+                        {theme.palette.mode === 'dark' ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+                    </IconButton>
+                    <Box
+                        sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: '50%',
+                            bgcolor: 'primary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '0.875rem',
+                            "&:hover": {
+                                "&::after": {
+                                    content: "'Admin'",
+                                    position: 'absolute',
+                                    top: '100%',
+                                    right: '0%',
+                                    transform: 'translateX(-50%)',
+                                    bgcolor: 'primary.main',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.875rem',
+                                    p: 1,
+                                    borderRadius: 2,
+                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                    maxHeight: 400,
+                                    overflowY: 'hidden'
+                                }
+                            }
+                        }}
+                    >
+                        AD
+                    </Box>
                 </Box>
             </Toolbar>
         </AppBar>

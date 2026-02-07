@@ -12,11 +12,17 @@ import {
     CircularProgress,
     Alert,
     Paper,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import SupplierTable from '@/components/Suppliers/SupplierTable';
 import AddSupplierModal from '@/components/Suppliers/AddSupplierModal';
+import SupplierDetailModal from '@/components/Suppliers/SupplierDetailModal';
 import api from '@/lib/axios';
 import { Supplier } from '@/types';
 
@@ -26,7 +32,9 @@ const SuppliersContent = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const searchParams = useSearchParams();
 
     useEffect(() => {
@@ -36,6 +44,14 @@ const SuppliersContent = () => {
         }
     }, [searchParams]);
 
+    useEffect(() => {
+        const viewId = searchParams.get('view');
+        if (viewId && suppliers.length > 0) {
+            setSelectedSupplierId(viewId);
+            setIsDetailModalOpen(true);
+        }
+    }, [searchParams, suppliers]);
+
     const fetchSuppliers = useCallback(async () => {
         setLoading(true);
         try {
@@ -43,7 +59,7 @@ const SuppliersContent = () => {
             const data = response.data.data;
             setSuppliers(data);
             setFilteredSuppliers(data);
-            setError(null); // Clear error on success
+            setError(null);
         } catch (err: any) {
             console.error('Error fetching suppliers:', err);
             setError('Failed to load suppliers. Please try again later.');
@@ -71,6 +87,11 @@ const SuppliersContent = () => {
         setFilteredSuppliers(filtered);
     }, [searchQuery, suppliers]);
 
+    const handleViewDetail = (id: string) => {
+        setSelectedSupplierId(id);
+        setIsDetailModalOpen(true);
+    };
+
     if (loading && suppliers.length === 0) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -80,49 +101,67 @@ const SuppliersContent = () => {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h4" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                    Suppliers Management
-                </Typography>
+        <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary' }}>Supplier Directory</Typography>
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        Manage and oversee your global network of sustainable partners.
+                    </Typography>
+                </Box>
                 <Button
                     variant="contained"
                     color="primary"
                     startIcon={<AddIcon />}
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        setIsAddModalOpen(true);
+                    }}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 3 }}
                 >
                     Add Supplier
                 </Button>
             </Box>
 
-            <Paper sx={{ p: 2, mb: 3 }}>
+            <Paper variant="outlined" sx={{ p: 1.5, mb: 4, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                 <TextField
                     fullWidth
-                    variant="outlined"
-                    placeholder="Search suppliers by name, email, or country..."
+                    variant="standard"
+                    placeholder="Search by name, email, or country..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     InputProps={{
+                        disableUnderline: true,
                         startAdornment: (
-                            <InputAdornment position="start">
+                            <InputAdornment position="start" sx={{ ml: 1, mr: 1 }}>
                                 <SearchIcon color="action" />
                             </InputAdornment>
                         ),
+                        sx: { height: 40, fontSize: '0.95rem' }
                     }}
                 />
             </Paper>
 
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
-            <SupplierTable suppliers={filteredSuppliers} />
+            <SupplierTable
+                suppliers={filteredSuppliers}
+                onViewDetail={handleViewDetail}
+            />
 
             <AddSupplierModal
-                open={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
                 onSuccess={() => {
                     fetchSuppliers();
                 }}
             />
+
+            <SupplierDetailModal
+                open={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                supplierId={selectedSupplierId}
+            />
+
         </Container>
     );
 };
