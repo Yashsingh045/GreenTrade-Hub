@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -13,6 +13,8 @@ import {
     Typography,
 } from '@mui/material';
 import api from '@/lib/axios';
+import { Supplier } from '@/types';
+
 
 interface AddSupplierModalProps {
     open: boolean;
@@ -30,6 +32,13 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({ open, onClose, onSu
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (open) {
+            setFormData({ name: '', email: '', country: '', contactPerson: '', phone: '' });
+            setErrors({});
+        }
+    }, [open]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -65,14 +74,22 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({ open, onClose, onSu
         try {
             await api.post('/suppliers', formData);
             onSuccess();
-            setFormData({ name: '', email: '', country: '', contactPerson: '', phone: '' });
             onClose();
         } catch (error: any) {
-            console.error('Error adding supplier:', error);
+            console.error('Error saving supplier:', error);
             if (error.response?.data?.errors) {
-                setErrors(error.response.data.errors);
+                // Handle backend validation errors if any
+                const backendErrors: Record<string, string> = {};
+                if (Array.isArray(error.response.data.errors)) {
+                    error.response.data.errors.forEach((err: any) => {
+                        backendErrors[err.path[0]] = err.message;
+                    });
+                    setErrors(backendErrors);
+                } else {
+                    setErrors({ submit: 'Failed to update supplier. Please check your input.' });
+                }
             } else {
-                setErrors({ submit: 'Failed to add supplier. Please try again.' });
+                setErrors({ submit: 'Failed to save supplier. Please try again.' });
             }
         } finally {
             setSubmitting(false);
@@ -82,7 +99,9 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({ open, onClose, onSu
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <form onSubmit={handleSubmit}>
-                <DialogTitle sx={{ fontWeight: 'bold' }}>Add New Supplier</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 'bold' }}>
+                    Add New Supplier
+                </DialogTitle>
                 <DialogContent dividers>
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 12 }}>
@@ -155,7 +174,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({ open, onClose, onSu
                         color="primary"
                         disabled={submitting}
                     >
-                        {submitting ? 'Creating...' : 'Create Supplier'}
+                        {submitting ? 'Saving...' : 'Create'}
                     </Button>
                 </DialogActions>
             </form>

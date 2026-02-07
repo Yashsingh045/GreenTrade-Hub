@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export class AnalyticsService {
     async getSummary() {
-        const [totalSuppliers, totalProducts, categoryCounts, certificationCounts] = await Promise.all([
+        const [totalSuppliers, totalProducts, categoryCounts, certificationCounts, outOfStockCount, activeCertificationsCount] = await Promise.all([
             prisma.supplier.count(),
             prisma.product.count(),
             prisma.product.groupBy({
@@ -19,11 +19,19 @@ export class AnalyticsService {
                     id: true,
                 },
             }),
+            prisma.product.count({
+                where: { stockQuantity: 0 }
+            }),
+            prisma.product.count({
+                where: { certificationStatus: 'CERTIFIED' }
+            }),
         ]);
 
         return {
             totalSuppliers,
             totalProducts,
+            outOfStockCount,
+            activeCertificationsCount,
             productsByCategory: categoryCounts.map((item) => ({
                 category: item.category,
                 count: item._count.id,
