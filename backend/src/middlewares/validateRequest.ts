@@ -9,7 +9,7 @@ export const validateRequest = (schema: AnyZodObject) => {
                 query: req.query,
                 params: req.params,
             });
-            next();
+            return next();
         } catch (error) {
             if (error instanceof ZodError) {
                 return res.status(400).json({
@@ -21,7 +21,7 @@ export const validateRequest = (schema: AnyZodObject) => {
                     })),
                 });
             }
-            next(error);
+            return next(error);
         }
     };
 };
