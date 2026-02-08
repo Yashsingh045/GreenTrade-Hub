@@ -45,7 +45,6 @@ npm install
 
 # Configure environment variables
 # Update the .env file with your PostgreSQL credentials
-# DATABASE_URL="postgresql://user:password@localhost:5432/greentrade"
 
 # Generate Prisma Client
 npm run prisma:generate
@@ -71,7 +70,7 @@ cd frontend
 npm install
 
 # Configure environment variables
-# The .env.local file is already set to http://localhost:5000
+# The .env.example file is already set to http://localhost:5000
 
 # Start the development server
 npm run dev
@@ -166,6 +165,25 @@ GreenTrade-Hub/
         └── lib/
 ```
 
-<hr/>
+
+## Database Schema 
+
+<image src="./frontend/public/images/schema.png" alt="Schema" width="400" height="300" />
+
+
+
+
+## Screenshots of UI
+
+<image src="./frontend/public/images/dashboard.png" alt="Dashboard" width="600" height="350" />
+<image src="./frontend/public/images/dashboard_dark.png" alt="Dashboard Dark" width="600" height="350" />
+<image src="./frontend/public/images/products.png" alt="Products" width="600" height="350" />
+<image src="./frontend/public/images/supplier.png" alt="Suppliers" width="600" height="350" />
+
+
+## 🚀 Deployed URLs
+
+- Backend: https://greentrade-hub.onrender.com
+- Frontend: https://green-trade-hub.vercel.app/
 
 ## ------------  End of the file --------------
